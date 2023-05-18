@@ -21,7 +21,7 @@ typedef struct massage_slot_file
 typedef struct channel
 {
     unsigned long channel_num;
-    ssize_t word_len;
+    unsigned long word_len;
     char* data;
     struct channel* next;
 } channel;

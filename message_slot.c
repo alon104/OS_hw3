@@ -51,10 +51,7 @@ void delete_massage_slot(massage_slot_file* msg_slot){/*delete massage slot and 
 
 channel* search_channel(unsigned long num, massage_slot_file* msg_slot){/*returns a channel struct, NULL if not initialized yet*/
     channel* curr = msg_slot->channels;
-    if (curr == NULL){
-        return NULL;
-    }
-    while(!(curr->next == NULL)){
+    while(!(curr == NULL)){
         if((curr->channel_num) == num){
             return curr;
         }
@@ -139,8 +136,8 @@ static ssize_t device_write( struct file*       file,
         return -EFAULT;
     };
   }
-  buff_to_chan(i, buffer, (channel*)file->private_data); /*copy from buff to the channel*/
-  ((channel*)(file->private_data))->word_len = i; /*update to length of current word of the channel*/
+  buff_to_chan(i, buff, (channel*)file->private_data); /*copy from buff to the channel*/
+  ((channel*)(file->private_data))->word_len = (unsigned long) i; /*update to length of current word of the channel*/
 
   // free buff and return the number of input characters used
   kfree(buff);
@@ -154,19 +151,23 @@ static ssize_t device_read( struct file* file,
                             size_t       length,
                             loff_t*      offset )
 {
-    ssize_t n, i;
+    ssize_t i;
+    unsigned long n;
     char* word;
+
     if(((channel*)file->private_data) == NULL || buffer == NULL){/*no open channel for this file or buffer is NULL*/
         return -EINVAL;
     }
+
     n = ((channel*)(file->private_data))->word_len;
     if(n == 0){/*no word in the channel*/
         return -EWOULDBLOCK;
     }
+
     if(length < n){/*buffer is too short for the word saved in the channel*/
         return -ENOSPC;
     }
-    
+
     /*implement main function details*/
     word = ((channel*)(file->private_data))->data;
     for(i=0; i<n; ++i){
@@ -213,7 +214,7 @@ static long device_ioctl( struct   file* file,
   }
 
   file->private_data = chan; /*set the channel to the message slot file*/
-
+  
   return 0;
 }
 

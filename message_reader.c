@@ -20,7 +20,7 @@ int main(int argc, char* argv[]){
     char buff[128];
     int message_len;
 
-    file_descriptor = open(path, O_WRONLY); /*open file*/
+    file_descriptor = open(path, O_RDONLY); /*open file*/
     if(file_descriptor < 0){/*failed to open file*/
         perror("Reader Failed To Open File");
         exit(1);
@@ -41,7 +41,7 @@ int main(int argc, char* argv[]){
         exit(1);
     }
 
-    if(write(STDOUT_FILENO, buff, message_len)){ /*try print to stdout*/
+    if(write(STDOUT_FILENO, buff, message_len) < 0){ /*try print to stdout*/
         perror("Reader Failed Printing To STDOUT");
         exit(1);
     }
