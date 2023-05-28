@@ -184,7 +184,7 @@ static ssize_t device_read( struct file* file,
             for(j=0; j<i; j++){
                 /*recover original data to user's buffer,
                 as said in the forum: we know for sure put_user will work fine here*/
-                put_user(old_message[j], &buffer[j])
+                put_user(old_message[j], &buffer[j]);
             }
             return -EFAULT;
         }
