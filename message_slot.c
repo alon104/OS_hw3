@@ -152,8 +152,10 @@ static ssize_t device_read( struct file* file,
                             loff_t*      offset )
 {
     ssize_t i;
+    int j;
     unsigned long n;
     char* word;
+    char old_message[128];
 
     if(((channel*)file->private_data) == NULL || buffer == NULL){/*no open channel for this file or buffer is NULL*/
         return -EINVAL;
@@ -168,10 +170,22 @@ static ssize_t device_read( struct file* file,
         return -ENOSPC;
     }
 
-    /*implement main function details*/
     word = ((channel*)(file->private_data))->data;
+
+    for(i=0; i<n; i++){ /*save current buffer content to keep read atomic*/
+        if(!(get_user(old_message[i], &buffer[i]) == 0)){
+            /*as said in forum - if we failed here we will fail trying writing to the user's buffer*/
+            return -EFAULT;
+        }
+    }
+
     for(i=0; i<n; ++i){
-        if(!(put_user(word[i], &buffer[i]) == 0)){
+        if(!(put_user(word[i], &buffer[i]) == 0)){ /*error while trying to write message to user buffer*/
+            for(j=0; j<i; j++){
+                /*recover original data to user's buffer,
+                as said in the forum: we know for sure put_user will work fine here*/
+                put_user(old_message[j], &buffer[j])
+            }
             return -EFAULT;
         }
     }
